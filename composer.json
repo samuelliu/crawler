@@ -44,7 +44,6 @@
         "phpstan/phpstan": "^0.12",
         "phpstan/phpstan-deprecation-rules": "^0.12.5",
         "rector/rector": "^0.8",
-        "roave/backward-compatibility-check": "^3.0 || ^4.0 || ^5.0",
         "roave/security-advisories": "dev-latest",
         "saschaegerer/phpstan-typo3": "^0.13.1",
         "slam/phpstan-extensions": "^5.0",
@@ -125,6 +124,9 @@
         ],
         "extension-create-libs": [
             "@composer install -d Resources/Private/Php/Libraries"
+        ],
+        "roave-bcb": [
+            "docker run --rm -v `pwd`:/app nyholm/roave-bc-check --from=HEAD~1"
         ]
     },
     "extra": {
