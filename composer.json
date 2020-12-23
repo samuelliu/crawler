@@ -126,7 +126,7 @@
             "@composer install -d Resources/Private/Php/Libraries"
         ],
         "roave-bcb": [
-            "docker run --rm -v `pwd`:/app nyholm/roave-bc-check --from=HEAD~1"
+            "docker run --rm -v `pwd`:/app nyholm/roave-bc-check"
         ]
     },
     "extra": {
