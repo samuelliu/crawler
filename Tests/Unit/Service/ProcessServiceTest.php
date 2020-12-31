@@ -58,7 +58,6 @@ class ProcessServiceTest extends UnitTestCase
         $this->crawlerController = $this->createPartialMock(CrawlerController::class, ['dummyMethod']);
     }
 
-
     /**
      * @test
      */

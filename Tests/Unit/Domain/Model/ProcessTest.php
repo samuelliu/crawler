@@ -20,7 +20,6 @@ namespace AOE\Crawler\Tests\Unit\Domain\Model;
  */
 
 use AOE\Crawler\Domain\Model\Process;
-use AOE\Crawler\Domain\Repository\QueueRepository;
 use Nimut\TestingFramework\TestCase\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 
