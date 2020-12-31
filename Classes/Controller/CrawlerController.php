@@ -235,8 +235,6 @@ class CrawlerController implements LoggerAwareInterface
         $this->iconFactory = GeneralUtility::makeInstance(IconFactory::class);
         $this->crawler = GeneralUtility::makeInstance(Crawler::class);
 
-        $this->processFilename = Environment::getVarPath() . '/lock/tx_crawler.proc';
-
         /** @var ExtensionConfigurationProvider $configurationProvider */
         $configurationProvider = GeneralUtility::makeInstance(ExtensionConfigurationProvider::class);
         $settings = $configurationProvider->getExtensionConfiguration();

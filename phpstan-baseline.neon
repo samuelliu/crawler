@@ -270,12 +270,12 @@ parameters:
 			path: Classes/ContextMenu/ItemProvider.php
 
 		-
-			message: "#^Class cognitive complexity for \"CrawlerController\" is 245, keep it under 50$#"
+			message: "#^Class cognitive complexity for \"CrawlerController\" is 242, keep it under 50$#"
 			count: 1
 			path: Classes/Controller/CrawlerController.php
 
 		-
-			message: "#^Class cognitive complexity for \"CrawlerController\" is 245, keep it under 60$#"
+			message: "#^Class cognitive complexity for \"CrawlerController\" is 242, keep it under 60$#"
 			count: 1
 			path: Classes/Controller/CrawlerController.php
 
@@ -286,11 +286,6 @@ parameters:
 					since TYPO3 10\\.4, will be removed in version 12\\.0$#
 				"""
 			count: 3
-			path: Classes/Controller/CrawlerController.php
-
-		-
-			message: "#^Access to an undefined property AOE\\\\Crawler\\\\Controller\\\\CrawlerController\\:\\:\\$processFilename\\.$#"
-			count: 1
 			path: Classes/Controller/CrawlerController.php
 
 		-
@@ -448,12 +443,7 @@ parameters:
 			path: Classes/Controller/CrawlerController.php
 
 		-
-			message: "#^Cognitive complexity for \"AOE\\\\Crawler\\\\Controller\\\\CrawlerController\\:\\:CLI_run\\(\\)\" is 13, keep it under 8$#"
-			count: 1
-			path: Classes/Controller/CrawlerController.php
-
-		-
-			message: "#^Call to an undefined method object\\:\\:crawler_init\\(\\)\\.$#"
+			message: "#^Cognitive complexity for \"AOE\\\\Crawler\\\\Controller\\\\CrawlerController\\:\\:CLI_run\\(\\)\" is 10, keep it under 8$#"
 			count: 1
 			path: Classes/Controller/CrawlerController.php
 
