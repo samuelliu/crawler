@@ -85,16 +85,6 @@ class Process extends AbstractEntity
      */
     protected $queueRepository;
 
-    /**
-     * @var string[]
-     * @noRector \Rector\DeadCode\Rector\Property\RemoveUnusedPrivatePropertyRector
-     * @noRector \Rector\DeadCode\Rector\Property\RemoveSetterOnlyPropertyAndMethodCallRector
-     */
-    private $deprecatedPublicMethods = [
-        'getTimeForFirstItem' => 'Using Process::getTimeForFirstItem() is deprecated since 9.0.1 and will be removed in v11.x',
-        'getTimeForLastItem' => 'Using Process::getTimeForLastItem() is deprecated since 9.0.1 and will be removed in v11.x',
-    ];
-
     public function __construct()
     {
         $objectManager = GeneralUtility::makeInstance(ObjectManager::class);
@@ -207,24 +197,6 @@ class Process extends AbstractEntity
         $lastItem = $this->getQueueRepository()->findOldestEntryForProcess($this);
         $firstItem = $this->getQueueRepository()->findYoungestEntryForProcess($this);
         return $lastItem['exec_time'] - $firstItem['exec_time'];
-    }
-
-    /**
-     * @deprecated
-     */
-    public function getTimeForLastItem(): int
-    {
-        $entry = $this->getQueueRepository()->findOldestEntryForProcess($this);
-        return $entry['exec_time'] ?? 0;
-    }
-
-    /**
-     * @deprecated
-     */
-    public function getTimeForFirstItem(): int
-    {
-        $entry = $this->getQueueRepository()->findYoungestEntryForProcess($this);
-        return $entry['exec_time'] ?? 0;
     }
 
     /**

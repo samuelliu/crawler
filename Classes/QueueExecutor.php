@@ -23,7 +23,6 @@ use AOE\Crawler\Controller\CrawlerController;
 use AOE\Crawler\Converter\JsonCompatibilityConverter;
 use AOE\Crawler\CrawlStrategy\CallbackExecutionStrategy;
 use AOE\Crawler\CrawlStrategy\CrawlStrategyFactory;
-use AOE\Crawler\Utility\SignalSlotUtility;
 use TYPO3\CMS\Core\Http\Uri;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -78,13 +77,6 @@ class QueueExecutor implements SingletonInterface
             if ($result !== false) {
                 $result = ['content' => json_encode($result)];
             }
-
-            $signalPayload = ['url' => $parameters['url'], 'result' => $result];
-            SignalSlotUtility::emitSignal(
-                self::class,
-                SignalSlotUtility::SIGNAL_URL_CRAWLED,
-                $signalPayload
-            );
         }
         return $result;
     }

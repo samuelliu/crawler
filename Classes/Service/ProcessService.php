@@ -54,59 +54,9 @@ class ProcessService
     use PublicPropertyDeprecationTrait;
 
     /**
-     * @var string[]
-     * @noRector
-     * @noRector \Rector\DeadCode\Rector\Property\RemoveUnusedPrivatePropertyRector
-     * @noRector \Rector\DeadCode\Rector\Property\RemoveSetterOnlyPropertyAndMethodCallRector
-     */
-    private $deprecatedPublicProperties = [
-        'queueRepository' => 'Using queueRepository is deprecated since 9.0.1 and will be removed in v11.x',
-        'crawlerController' => 'Using crawlerController is deprecated since 9.0.1 and will be removed in v11.x',
-        'countInARun' => 'Using countInARun is deprecated since 9.0.1 and will be removed in v11.x',
-        'processLimit' => 'Using processLimit is deprecated since 9.0.1 and will be removed in v11.x',
-        'verbose' => 'Using verbose is deprecated since 9.0.1 and will be removed in v11.x',
-    ];
-
-    /**
-     * @var string[]
-     * @noRector
-     * @noRector \Rector\DeadCode\Rector\Property\RemoveUnusedPrivatePropertyRector
-     * @noRector \Rector\DeadCode\Rector\Property\RemoveSetterOnlyPropertyAndMethodCallRector
-     */
-    private $deprecatedPublicMethods = [
-        'multiProcess' => 'Using ProcessService::multiProcess() is deprecated since 9.0.1 and will be removed in v11.x',
-        'reportItemStatus' => 'Using ProcessService::reportItemStatus() is deprecated since 9.0.1 and will be removed in v11.x',
-        'startRequiredProcesses' => 'Using ProcessService::startRequiredProcesses() is deprecated since 9.0.1 and will be removed in v11.x',
-    ];
-
-    /**
      * @var int
      */
     private $timeToLive;
-
-    /**
-     * @var int
-     * @deprecated
-     */
-    private $countInARun;
-
-    /**
-     * @var int
-     * @deprecated
-     */
-    private $processLimit;
-
-    /**
-     * @var CrawlerController
-     * @deprecated
-     */
-    private $crawlerController;
-
-    /**
-     * @var \AOE\Crawler\Domain\Repository\QueueRepository
-     * @deprecated
-     */
-    private $queueRepository;
 
     /**
      * @var \AOE\Crawler\Domain\Repository\ProcessRepository
@@ -117,12 +67,6 @@ class ProcessService
      * @var array
      */
     private $extensionSettings;
-
-    /**
-     * @var bool
-     * @deprecated
-     */
-    private $verbose;
 
     /**
      * the constructor
@@ -137,62 +81,6 @@ class ProcessService
         $this->countInARun = (int) $this->extensionSettings['countInARun'];
         $this->processLimit = (int) $this->extensionSettings['processLimit'];
         $this->verbose = (bool) $this->extensionSettings['processVerbose'];
-    }
-
-    /**
-     * starts multiple processes
-     *
-     * @param integer $timeout
-     *
-     * @throws \RuntimeException
-     * @deprecated
-     * @codeCoverageIgnore
-     */
-    public function multiProcess($timeout): void
-    {
-        if ($this->processLimit <= 1) {
-            throw new \RuntimeException('To run crawler in multi process mode you have to configure the processLimit > 1.' . PHP_EOL);
-        }
-
-        $pendingItemsStart = $this->queueRepository->countAllPendingItems();
-        $itemReportLimit = 20;
-        $reportItemCount = $pendingItemsStart - $itemReportLimit;
-        if ($this->verbose) {
-            $this->reportItemStatus();
-        }
-        $this->startRequiredProcesses();
-        $nextTimeOut = time() + $this->timeToLive;
-        $currentPendingItems = '';
-        for ($i = 0; $i < $timeout; $i++) {
-            $currentPendingItems = $this->queueRepository->countAllPendingItems();
-            if ($this->startRequiredProcesses()) {
-                $nextTimeOut = time() + $this->timeToLive;
-            }
-            if ($currentPendingItems === 0) {
-                if ($this->verbose) {
-                    echo 'Finished...' . chr(10);
-                }
-                break;
-            }
-            if ($currentPendingItems < $reportItemCount) {
-                if ($this->verbose) {
-                    $this->reportItemStatus();
-                }
-                $reportItemCount = $currentPendingItems - $itemReportLimit;
-            }
-            sleep(1);
-            if ($nextTimeOut < time()) {
-                $timedOutProcesses = $this->processRepository->findAll();
-                $nextTimeOut = time() + $this->timeToLive;
-                if ($this->verbose) {
-                    echo 'Cleanup' . implode(',', $timedOutProcesses->getProcessIds()) . chr(10);
-                }
-                $this->crawlerController->CLI_releaseProcesses($timedOutProcesses->getProcessIds());
-            }
-        }
-        if ($currentPendingItems > 0 && $this->verbose) {
-            echo 'Stop with timeout' . chr(10);
-        }
     }
 
     /**
@@ -240,52 +128,5 @@ class ProcessService
         }
 
         return ltrim($scriptPath);
-    }
-
-    /**
-     * Reports curent Status of queue
-     * @deprecated
-     * @codeCoverageIgnore
-     */
-    protected function reportItemStatus(): void
-    {
-        echo 'Pending:' . $this->queueRepository->countAllPendingItems() . ' / Assigned:' . $this->queueRepository->countAllAssignedPendingItems() . chr(10);
-    }
-
-    /**
-     * according to the given count of pending items and the countInARun Setting this method
-     * starts more crawling processes
-     *
-     * @return boolean if processes are started
-     * @throws ProcessException
-     * @deprecated
-     * @codeCoverageIgnore
-     */
-    private function startRequiredProcesses()
-    {
-        $ret = false;
-        $currentProcesses = $this->processRepository->findAllActive()->count();
-        $availableProcessesCount = $this->processLimit - $currentProcesses;
-        $requiredProcessesCount = ceil($this->queueRepository->countAllUnassignedPendingItems() / $this->countInARun);
-        $startProcessCount = min([$availableProcessesCount, $requiredProcessesCount]);
-        if ($startProcessCount <= 0) {
-            return $ret;
-        }
-        if ($startProcessCount && $this->verbose) {
-            echo 'Start ' . $startProcessCount . ' new processes (Running:' . $currentProcesses . ')';
-        }
-        for ($i = 0; $i < $startProcessCount; $i++) {
-            usleep(100);
-            if ($this->startProcess()) {
-                if ($this->verbose) {
-                    echo '.';
-                    $ret = true;
-                }
-            }
-        }
-        if ($this->verbose) {
-            echo chr(10);
-        }
-        return $ret;
     }
 }

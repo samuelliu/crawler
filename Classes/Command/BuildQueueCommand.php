@@ -25,7 +25,6 @@ use AOE\Crawler\Converter\JsonCompatibilityConverter;
 use AOE\Crawler\Domain\Model\Reason;
 use AOE\Crawler\Domain\Repository\QueueRepository;
 use AOE\Crawler\Utility\MessageUtility;
-use AOE\Crawler\Utility\SignalSlotUtility;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
@@ -139,19 +138,6 @@ re-indexing or static publishing from command line.' . chr(10) . chr(10) .
         }
 
         $configurationKeys = $this->getConfigurationKeys((string) $input->getArgument('conf'));
-
-        if ($mode === 'queue' || $mode === 'exec') {
-            $reason = new Reason();
-            $reason->setReason(Reason::REASON_CLI_SUBMIT);
-            $reason->setDetailText('The cli script of the crawler added to the queue');
-
-            $signalPayload = ['reason' => $reason];
-            SignalSlotUtility::emitSignal(
-                self::class,
-                SignalSlotUtility::SIGNAL_INVOKE_QUEUE_CHANGE,
-                $signalPayload
-            );
-        }
 
         if ($extensionSettings['cleanUpOldQueueEntries']) {
             $queueRepository->cleanUpOldQueueEntries();

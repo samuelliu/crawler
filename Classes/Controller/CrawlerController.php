@@ -40,7 +40,6 @@ use AOE\Crawler\QueueExecutor;
 use AOE\Crawler\Service\ConfigurationService;
 use AOE\Crawler\Service\UrlService;
 use AOE\Crawler\Service\UserService;
-use AOE\Crawler\Utility\SignalSlotUtility;
 use AOE\Crawler\Value\QueueFilter;
 use PDO;
 use Psr\Http\Message\UriInterface;
@@ -154,20 +153,6 @@ class CrawlerController implements LoggerAwareInterface
     public $MP = false;
 
     /**
-     * @var string
-     * @deprecated
-     */
-    protected $processFilename;
-
-    /**
-     * Holds the internal access mode can be 'gui','cli' or 'cli_im'
-     *
-     * @var string
-     * @deprecated
-     */
-    protected $accessMode;
-
-    /**
      * @var QueueRepository
      */
     protected $queueRepository;
@@ -201,34 +186,6 @@ class CrawlerController implements LoggerAwareInterface
      * @var IconFactory
      */
     protected $iconFactory;
-
-    /**
-     * @var string[]
-     */
-    private $deprecatedPublicMethods = [
-        'cleanUpOldQueueEntries' => 'Using CrawlerController::cleanUpOldQueueEntries() is deprecated since 9.0.1 and will be removed in v11.x, please use QueueRepository->cleanUpOldQueueEntries() instead.',
-        'CLI_debug' => 'Using CrawlerController->CLI_debug() is deprecated since 9.1.3 and will be removed in v11.x',
-        'CLI_runHooks' => 'Using CrawlerController->CLI_runHooks() is deprecated since 9.1.5 and will be removed in v11.x',
-        'getAccessMode' => 'Using CrawlerController->getAccessMode() is deprecated since 9.1.3 and will be removed in v11.x',
-        'getLogEntriesForPageId' => 'Using CrawlerController->getLogEntriesForPageId() is deprecated since 9.1.5 and will be remove in v11.x',
-        'getLogEntriesForSetId' => 'Using crawlerController::getLogEntriesForSetId() is deprecated since 9.0.1 and will be removed in v11.x',
-        'hasGroupAccess' => 'Using CrawlerController->getLogEntriesForPageId() is deprecated since 9.2.2 and will be remove in v11.x, please use UserService::hasGroupAccess() instead.',
-        'flushQueue' => 'Using CrawlerController::flushQueue() is deprecated since 9.0.1 and will be removed in v11.x, please use QueueRepository->flushQueue() instead.',
-        'setAccessMode' => 'Using CrawlerController->setAccessMode() is deprecated since 9.1.3 and will be removed in v11.x',
-        'getDisabled' => 'Using CrawlerController->getDisabled() is deprecated since 9.1.3 and will be removed in v11.x, please use Crawler->isDisabled() instead',
-        'setDisabled' => 'Using CrawlerController->setDisabled() is deprecated since 9.1.3 and will be removed in v11.x, please use Crawler->setDisabled() instead',
-        'getProcessFilename' => 'Using CrawlerController->getProcessFilename() is deprecated since 9.1.3 and will be removed in v11.x',
-        'setProcessFilename' => 'Using CrawlerController->setProcessFilename() is deprecated since 9.1.3 and will be removed in v11.x',
-        'getDuplicateRowsIfExist' => 'Using CrawlerController->getDuplicateRowsIfExist() is deprecated since 9.1.4 and will be remove in v11.x, please use QueueRepository->getDuplicateQueueItemsIfExists() instead',
-    ];
-
-    /**
-     * @var string[]
-     */
-    private $deprecatedPublicProperties = [
-        'accessMode' => 'Using CrawlerController->accessMode is deprecated since 9.1.3 and will be removed in v11.x',
-        'processFilename' => 'Using CrawlerController->accessMode is deprecated since 9.1.3 and will be removed in v11.x',
-    ];
 
     /**
      * @var BackendUserAuthentication|null
@@ -302,66 +259,6 @@ class CrawlerController implements LoggerAwareInterface
     public function setMaximumUrlsToCompile(int $maximumUrlsToCompile): void
     {
         $this->maximumUrlsToCompile = $maximumUrlsToCompile;
-    }
-
-    /**
-     * Method to set the accessMode can be gui, cli or cli_im
-     *
-     * @return string
-     * @deprecated
-     */
-    public function getAccessMode()
-    {
-        return $this->accessMode;
-    }
-
-    /**
-     * @param string $accessMode
-     * @deprecated
-     */
-    public function setAccessMode($accessMode): void
-    {
-        $this->accessMode = $accessMode;
-    }
-
-    /**
-     * Set disabled status to prevent processes from being processed
-     * @deprecated
-     */
-    public function setDisabled(?bool $disabled = true): void
-    {
-        if ($disabled) {
-            GeneralUtility::writeFile($this->processFilename, 'disabled');
-        } elseif (is_file($this->processFilename)) {
-            unlink($this->processFilename);
-        }
-    }
-
-    /**
-     * Get disable status
-     * @deprecated
-     */
-    public function getDisabled(): bool
-    {
-        return is_file($this->processFilename);
-    }
-
-    /**
-     * @param string $filenameWithPath
-     * @deprecated
-     */
-    public function setProcessFilename($filenameWithPath): void
-    {
-        $this->processFilename = $filenameWithPath;
-    }
-
-    /**
-     * @return string
-     * @deprecated
-     */
-    public function getProcessFilename()
-    {
-        return $this->processFilename;
     }
 
     /**
@@ -713,30 +610,6 @@ class CrawlerController implements LoggerAwareInterface
     }
 
     /**
-     * Check if a user has access to an item
-     * (e.g. get the group list of the current logged in user from $GLOBALS['TSFE']->gr_list)
-     *
-     * @param string $groupList Comma-separated list of (fe_)group UIDs from a user
-     * @param string $accessList Comma-separated list of (fe_)group UIDs of the item to access
-     * @return bool TRUE if at least one of the users group UIDs is in the access list or the access list is empty
-     * @see \TYPO3\CMS\Frontend\Page\PageRepository::getMultipleGroupsWhereClause()
-     * @deprecated
-     * @codeCoverageIgnore
-     */
-    public function hasGroupAccess($groupList, $accessList)
-    {
-        if (empty($accessList)) {
-            return true;
-        }
-        foreach (GeneralUtility::intExplode(',', $groupList) as $groupUid) {
-            if (GeneralUtility::inList($accessList, $groupUid)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Will expand the parameters configuration to individual values. This follows a certain syntax of the value of each parameter.
      * Syntax of values:
      * - Basically: If the value is wrapped in [...] it will be expanded according to the following syntax, otherwise the value is taken literally
@@ -919,108 +792,6 @@ class CrawlerController implements LoggerAwareInterface
      ************************************/
 
     /**
-     * Return array of records from crawler queue for input page ID
-     *
-     * @param integer $id Page ID for which to look up log entries.
-     * @param boolean $doFlush If TRUE, then entries selected at DELETED(!) instead of selected!
-     * @param boolean $doFullFlush
-     * @param integer $itemsPerPage Limit the amount of entries per page default is 10
-     * @return array
-     *
-     * @deprecated
-     */
-    public function getLogEntriesForPageId($id, QueueFilter $queueFilter, $doFlush = false, $doFullFlush = false, $itemsPerPage = 10)
-    {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
-        $queryBuilder
-            ->select('*')
-            ->from($this->tableName)
-            ->where(
-                $queryBuilder->expr()->eq('page_id', $queryBuilder->createNamedParameter($id, PDO::PARAM_INT))
-            )
-            ->orderBy('scheduled', 'DESC');
-
-        $expressionBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
-            ->getConnectionForTable($this->tableName)
-            ->getExpressionBuilder();
-        $query = $expressionBuilder->andX();
-        // PHPStorm adds the highlight that the $addWhere is immediately overwritten,
-        // but the $query = $expressionBuilder->andX() ensures that the $addWhere is written correctly with AND
-        // between the statements, it's not a mistake in the code.
-        switch ($queueFilter) {
-            case 'pending':
-                $queryBuilder->andWhere($queryBuilder->expr()->eq('exec_time', 0));
-                break;
-            case 'finished':
-                $queryBuilder->andWhere($queryBuilder->expr()->gt('exec_time', 0));
-                break;
-        }
-
-        if ($doFlush) {
-            $this->queueRepository->flushQueue($queueFilter);
-        }
-        if ($itemsPerPage > 0) {
-            $queryBuilder
-                ->setMaxResults((int) $itemsPerPage);
-        }
-
-        return $queryBuilder->execute()->fetchAll();
-    }
-
-    /**
-     * Return array of records from crawler queue for input set ID
-     *
-     * @param int $set_id Set ID for which to look up log entries.
-     * @param string $filter Filter: "all" => all entries, "pending" => all that is not yet run, "finished" => all complete ones
-     * @param bool $doFlush If TRUE, then entries selected at DELETED(!) instead of selected!
-     * @param int $itemsPerPage Limit the amount of entries per page default is 10
-     * @return array
-     *
-     * @deprecated
-     */
-    public function getLogEntriesForSetId(int $set_id, string $filter = '', bool $doFlush = false, bool $doFullFlush = false, int $itemsPerPage = 10)
-    {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
-        $queryBuilder
-            ->select('*')
-            ->from($this->tableName)
-            ->where(
-                $queryBuilder->expr()->eq('set_id', $queryBuilder->createNamedParameter($set_id, PDO::PARAM_INT))
-            )
-            ->orderBy('scheduled', 'DESC');
-
-        $expressionBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
-            ->getConnectionForTable($this->tableName)
-            ->getExpressionBuilder();
-        $query = $expressionBuilder->andX();
-        // PHPStorm adds the highlight that the $addWhere is immediately overwritten,
-        // but the $query = $expressionBuilder->andX() ensures that the $addWhere is written correctly with AND
-        // between the statements, it's not a mistake in the code.
-        $addWhere = '';
-        switch ($filter) {
-            case 'pending':
-                $queryBuilder->andWhere($queryBuilder->expr()->eq('exec_time', 0));
-                $addWhere = $query->add($expressionBuilder->eq('exec_time', 0));
-                break;
-            case 'finished':
-                $queryBuilder->andWhere($queryBuilder->expr()->gt('exec_time', 0));
-                $addWhere = $query->add($expressionBuilder->gt('exec_time', 0));
-                break;
-        }
-        if ($doFlush) {
-            $addWhere = $query->add($expressionBuilder->eq('set_id', (int) $set_id));
-            $this->flushQueue($doFullFlush ? '' : $addWhere);
-            return [];
-        }
-        if ($itemsPerPage > 0) {
-            $queryBuilder
-                ->setMaxResults((int) $itemsPerPage);
-        }
-
-        return $queryBuilder->execute()->fetchAll();
-    }
-
-    /**
      * Adding call back entries to log (called from hooks typically, see indexed search class "class.crawler.php"
      *
      * @param integer $setId Set ID
@@ -1133,20 +904,6 @@ class CrawlerController implements LoggerAwareInterface
                 $uid = $connectionForCrawlerQueue->lastInsertId('tx_crawler_queue', 'qid');
                 $rows[] = $uid;
                 $urlAdded = true;
-
-                $signalPayload = ['uid' => $uid, 'fieldArray' => $fieldArray];
-                SignalSlotUtility::emitSignal(
-                    self::class,
-                    SignalSlotUtility::SIGNAL_URL_ADDED_TO_QUEUE,
-                    $signalPayload
-                );
-            } else {
-                $signalPayload = ['rows' => $rows, 'fieldArray' => $fieldArray];
-                SignalSlotUtility::emitSignal(
-                    self::class,
-                    SignalSlotUtility::SIGNAL_DUPLICATE_URL_IN_QUEUE,
-                    $signalPayload
-                );
             }
         }
 
@@ -1199,12 +956,6 @@ class CrawlerController implements LoggerAwareInterface
             return;
         }
 
-        SignalSlotUtility::emitSignal(
-            self::class,
-            SignalSlotUtility::SIGNAL_QUEUEITEM_PREPROCESS,
-            [$queueId, &$queueRec]
-        );
-
         // Set exec_time to lock record:
         $field_array = ['exec_time' => $this->getCurrentTime()];
 
@@ -1250,12 +1001,6 @@ class CrawlerController implements LoggerAwareInterface
         // Set result in log which also denotes the end of the processing of this entry.
         $field_array = ['result_data' => json_encode($result)];
 
-        SignalSlotUtility::emitSignal(
-            self::class,
-            SignalSlotUtility::SIGNAL_QUEUEITEM_POSTPROCESS,
-            [$queueId, &$field_array]
-        );
-
         GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable('tx_crawler_queue')
             ->update(
                 'tx_crawler_queue',
@@ -1288,12 +1033,6 @@ class CrawlerController implements LoggerAwareInterface
 
         // Set result in log which also denotes the end of the processing of this entry.
         $field_array = ['result_data' => json_encode($result)];
-
-        SignalSlotUtility::emitSignal(
-            self::class,
-            SignalSlotUtility::SIGNAL_QUEUEITEM_POSTPROCESS,
-            [$queueId, &$field_array]
-        );
 
         $connectionForCrawlerQueue->update(
             $this->tableName,
@@ -1573,18 +1312,6 @@ class CrawlerController implements LoggerAwareInterface
         $result = 0;
         $counter = 0;
 
-        // First, run hooks:
-        foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['crawler']['cli_hooks'] ?? [] as $objRef) {
-            trigger_error(
-                'This hook (crawler/cli_hooks) is deprecated since 9.1.5 and will be removed when dropping support for TYPO3 9LTS and 10LTS',
-                E_USER_DEPRECATED
-            );
-            $hookObj = GeneralUtility::makeInstance($objRef);
-            if (is_object($hookObj)) {
-                $hookObj->crawler_init($this);
-            }
-        }
-
         // Clean up the queue
         $this->queueRepository->cleanupQueue();
 
@@ -1637,20 +1364,6 @@ class CrawlerController implements LoggerAwareInterface
         }
 
         return $result;
-    }
-
-    /**
-     * Activate hooks
-     * @deprecated
-     */
-    public function CLI_runHooks(): void
-    {
-        foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['crawler']['cli_hooks'] ?? [] as $objRef) {
-            $hookObj = GeneralUtility::makeInstance($objRef);
-            if (is_object($hookObj)) {
-                $hookObj->crawler_init($this);
-            }
-        }
     }
 
     /**
@@ -1770,147 +1483,6 @@ class CrawlerController implements LoggerAwareInterface
     }
 
     /**
-     * Prints a message to the stdout (only if debug-mode is enabled)
-     *
-     * @param string $msg the message
-     * @deprecated
-     * @codeCoverageIgnore
-     */
-    public function CLI_debug($msg): void
-    {
-        if ((int) $this->extensionSettings['processDebug']) {
-            echo $msg . "\n";
-            flush();
-        }
-    }
-
-    /**
-     * Cleans up entries that stayed for too long in the queue. These are:
-     * - processed entries that are over 1.5 days in age
-     * - scheduled entries that are over 7 days old
-     *
-     * @deprecated
-     */
-    public function cleanUpOldQueueEntries(): void
-    {
-        // 24*60*60 Seconds in 24 hours
-        $processedAgeInSeconds = $this->extensionSettings['cleanUpProcessedAge'] * 86400;
-        $scheduledAgeInSeconds = $this->extensionSettings['cleanUpScheduledAge'] * 86400;
-
-        $now = time();
-        $condition = '(exec_time<>0 AND exec_time<' . ($now - $processedAgeInSeconds) . ') OR scheduled<=' . ($now - $scheduledAgeInSeconds);
-        $this->flushQueue($condition);
-    }
-
-    /**
-     * Removes queue entries
-     *
-     * @param string $where SQL related filter for the entries which should be removed
-     *
-     * @deprecated
-     */
-    protected function flushQueue($where = ''): void
-    {
-        $realWhere = strlen((string) $where) > 0 ? $where : '1=1';
-
-        $queryBuilder = $this->getQueryBuilder($this->tableName);
-
-        $groups = $queryBuilder
-            ->selectLiteral('DISTINCT set_id')
-            ->from($this->tableName)
-            ->where($realWhere)
-            ->execute()
-            ->fetchAll();
-        if (is_array($groups)) {
-            foreach ($groups as $group) {
-                $subSet = $queryBuilder
-                    ->select('qid', 'set_id')
-                    ->from($this->tableName)
-                    ->where(
-                        $realWhere,
-                        $queryBuilder->expr()->eq('set_id', $group['set_id'])
-                    )
-                    ->execute()
-                    ->fetchAll();
-
-                $payLoad = ['subSet' => $subSet];
-                SignalSlotUtility::emitSignal(
-                    self::class,
-                    SignalSlotUtility::SIGNAL_QUEUE_ENTRY_FLUSH,
-                    $payLoad
-                );
-            }
-        }
-
-        $queryBuilder
-            ->delete($this->tableName)
-            ->where($realWhere)
-            ->execute();
-    }
-
-    /**
-     * This method determines duplicates for a queue entry with the same parameters and this timestamp.
-     * If the timestamp is in the past, it will check if there is any unprocessed queue entry in the past.
-     * If the timestamp is in the future it will check, if the queued entry has exactly the same timestamp
-     *
-     * @param int $tstamp
-     * @param array $fieldArray
-     *
-     * @return array
-     * @deprecated
-     */
-    protected function getDuplicateRowsIfExist($tstamp, $fieldArray)
-    {
-        $rows = [];
-
-        $currentTime = $this->getCurrentTime();
-
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
-        $queryBuilder
-            ->select('qid')
-            ->from('tx_crawler_queue');
-        //if this entry is scheduled with "now"
-        if ($tstamp <= $currentTime) {
-            if ($this->extensionSettings['enableTimeslot']) {
-                $timeBegin = $currentTime - 100;
-                $timeEnd = $currentTime + 100;
-                $queryBuilder
-                    ->where(
-                        'scheduled BETWEEN ' . $timeBegin . ' AND ' . $timeEnd . ''
-                    )
-                    ->orWhere(
-                        $queryBuilder->expr()->lte('scheduled', $currentTime)
-                    );
-            } else {
-                $queryBuilder
-                    ->where(
-                        $queryBuilder->expr()->lte('scheduled', $currentTime)
-                    );
-            }
-        } elseif ($tstamp > $currentTime) {
-            //entry with a timestamp in the future need to have the same schedule time
-            $queryBuilder
-                ->where(
-                    $queryBuilder->expr()->eq('scheduled', $tstamp)
-                );
-        }
-
-        $queryBuilder
-            ->andWhere('NOT exec_time')
-            ->andWhere('NOT process_id')
-            ->andWhere($queryBuilder->expr()->eq('page_id', $queryBuilder->createNamedParameter($fieldArray['page_id'], PDO::PARAM_INT)))
-            ->andWhere($queryBuilder->expr()->eq('parameters_hash', $queryBuilder->createNamedParameter($fieldArray['parameters_hash'], PDO::PARAM_STR)));
-
-        $statement = $queryBuilder->execute();
-
-        while ($row = $statement->fetch()) {
-            $rows[] = $row['qid'];
-        }
-
-        return $rows;
-    }
-
-    /**
      * Returns a md5 hash generated from a serialized configuration array.
      *
      * @return string
@@ -1920,23 +1492,6 @@ class CrawlerController implements LoggerAwareInterface
         unset($configuration['paramExpanded']);
         unset($configuration['URLs']);
         return md5(serialize($configuration));
-    }
-
-    /**
-     * Build a URL from a Page and the Query String. If the page has a Site configuration, it can be built by using
-     * the Site instance.
-     *
-     * @param int $httpsOrHttp see tx_crawler_configuration.force_ssl
-     * @throws SiteNotFoundException
-     * @throws InvalidRouteArgumentsException
-     *
-     * @deprecated Using CrawlerController::getUrlFromPageAndQueryParameters() is deprecated since 9.1.1 and will be removed in v11.x, please use UrlService->getUrlFromPageAndQueryParameters() instead.
-     * @codeCoverageIgnore
-     */
-    protected function getUrlFromPageAndQueryParameters(int $pageId, string $queryString, ?string $alternativeBaseUrl, int $httpsOrHttp): UriInterface
-    {
-        $urlService = new UrlService();
-        return $urlService->getUrlFromPageAndQueryParameters($pageId, $queryString, $alternativeBaseUrl, $httpsOrHttp);
     }
 
     protected function swapIfFirstIsLargerThanSecond(array $reg): array

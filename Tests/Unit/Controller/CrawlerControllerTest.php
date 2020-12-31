@@ -79,69 +79,6 @@ class CrawlerControllerTest extends UnitTestCase
 
     /**
      * @test
-     */
-    public function setAndGet(): void
-    {
-        $accessMode = 'cli';
-        $this->crawlerController->setAccessMode($accessMode);
-
-        self::assertEquals(
-            $accessMode,
-            $this->crawlerController->getAccessMode()
-        );
-    }
-
-    /**
-     * @test
-     *
-     * @dataProvider setAndGetDisabledDataProvider
-     */
-    public function setAndGetDisabled(?bool $disabled, bool $expected): void
-    {
-        $filenameWithPath = tempnam('/tmp', 'test_foo') ?: 'FileNameIsForceIfTempNamReturnedFalse.txt';
-        $this->crawlerController->setProcessFilename($filenameWithPath);
-
-        // Not that elegant but testing that called without params gives the expected default.
-        if ($disabled === null) {
-            $this->crawlerController->setDisabled();
-        } else {
-            $this->crawlerController->setDisabled($disabled);
-        }
-
-        self::assertEquals(
-            $expected,
-            $this->crawlerController->getDisabled()
-        );
-
-        self::assertSame(
-            $expected,
-            is_file($filenameWithPath)
-        );
-
-        if ($disabled) {
-            self::assertSame(
-                'disabled',
-                file_get_contents($filenameWithPath)
-            );
-        }
-    }
-
-    /**
-     * @test
-     */
-    public function setAndGetProcessFilename(): void
-    {
-        $filenameWithPath = tempnam('/tmp', 'test_foo') ?: 'FileNameIsForceIfTempNamReturnedFalse.txt';
-        $this->crawlerController->setProcessFilename($filenameWithPath);
-
-        self::assertEquals(
-            $filenameWithPath,
-            $this->crawlerController->getProcessFilename()
-        );
-    }
-
-    /**
-     * @test
      *
      * @dataProvider drawURLs_PIfilterDataProvider
      */

@@ -148,19 +148,6 @@ class QueueRepository extends Repository implements LoggerAwareInterface
     }
 
     /**
-     * Count items which have not been processed yet
-     * @deprecated Using QueueRepository->countUnprocessedItems() is deprecated since 9.1.5 and will be removed in v11.x, please use count(QueueRepository->getUnprocessedItems()) instead
-     */
-    public function countUnprocessedItems(): int
-    {
-        trigger_error(
-            'Using QueueRepository->countUnprocessedItems() is deprecated since 9.1.5 and will be removed in v11.x, please use count(QueueRepository->getUnprocessedItems()) instead',
-            E_USER_DEPRECATED
-        );
-        return count($this->getUnprocessedItems());
-    }
-
-    /**
      * This method can be used to count all queue entrys which are
      * scheduled for now or a earlier date.
      */
@@ -358,8 +345,8 @@ class QueueRepository extends Repository implements LoggerAwareInterface
             ->addSelect('process_id_completed')
             ->where(
                 $queryBuilder->expr()->neq('exec_time', 0),
-                $queryBuilder->expr()->gte('exec_time', $queryBuilder->createNamedParameter($start, \PDO::PARAM_INT)),
-                $queryBuilder->expr()->lte('exec_time', $queryBuilder->createNamedParameter($end, \PDO::PARAM_INT))
+                $queryBuilder->expr()->gte('exec_time', $queryBuilder->createNamedParameter($start, PDO::PARAM_INT)),
+                $queryBuilder->expr()->lte('exec_time', $queryBuilder->createNamedParameter($end, PDO::PARAM_INT))
             )
             ->groupBy('process_id_completed')
             ->execute();
@@ -384,7 +371,7 @@ class QueueRepository extends Repository implements LoggerAwareInterface
             ->from($this->tableName)
             ->count('*')
             ->where(
-                $queryBuilder->expr()->eq('page_id', $queryBuilder->createNamedParameter($uid, \PDO::PARAM_INT))
+                $queryBuilder->expr()->eq('page_id', $queryBuilder->createNamedParameter($uid, PDO::PARAM_INT))
             );
 
         if ($unprocessed_only !== false) {
@@ -401,7 +388,7 @@ class QueueRepository extends Repository implements LoggerAwareInterface
 
         if ($timestamp) {
             $statement->andWhere(
-                $queryBuilder->expr()->eq('scheduled', $queryBuilder->createNamedParameter($timestamp, \PDO::PARAM_INT))
+                $queryBuilder->expr()->eq('scheduled', $queryBuilder->createNamedParameter($timestamp, PDO::PARAM_INT))
             );
         }
 
@@ -620,30 +607,6 @@ class QueueRepository extends Repository implements LoggerAwareInterface
             ->execute();
     }
 
-    /**
-     * @param string $processId
-     *
-     * @return bool|string
-     * @deprecated Using QueueRepository->countAllByProcessId() is deprecated since 9.1.5 and will be removed in v11.x, please use QueueRepository->findByProcessId()->count() instead
-     */
-    public function countAllByProcessId($processId)
-    {
-        trigger_error(
-            'Using QueueRepository->countAllByProcessId() is deprecated since 9.1.5 and will be removed in v11.x, please use QueueRepository->findByProcessId()->count() instead',
-            E_USER_DEPRECATED
-        );
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
-
-        return $queryBuilder
-            ->count('*')
-            ->from($this->tableName)
-            ->where(
-                $queryBuilder->expr()->eq('process_id', $queryBuilder->createNamedParameter($processId, \PDO::PARAM_STR))
-            )
-            ->execute()
-            ->fetchColumn(0);
-    }
-
     public function getDuplicateQueueItemsIfExists(bool $enableTimeslot, int $timestamp, int $currentTime, int $pageId, string $parametersHash): array
     {
         $rows = [];
@@ -681,8 +644,8 @@ class QueueRepository extends Repository implements LoggerAwareInterface
         $queryBuilder
             ->andWhere('NOT exec_time')
             ->andWhere('NOT process_id')
-            ->andWhere($queryBuilder->expr()->eq('page_id', $queryBuilder->createNamedParameter($pageId, \PDO::PARAM_INT)))
-            ->andWhere($queryBuilder->expr()->eq('parameters_hash', $queryBuilder->createNamedParameter($parametersHash, \PDO::PARAM_STR)));
+            ->andWhere($queryBuilder->expr()->eq('page_id', $queryBuilder->createNamedParameter($pageId, PDO::PARAM_INT)))
+            ->andWhere($queryBuilder->expr()->eq('parameters_hash', $queryBuilder->createNamedParameter($parametersHash, PDO::PARAM_STR)));
 
         $statement = $queryBuilder->execute();
 

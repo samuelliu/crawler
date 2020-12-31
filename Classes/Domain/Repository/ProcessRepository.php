@@ -165,18 +165,6 @@ class ProcessRepository extends Repository
     }
 
     /**
-     * Returns the number of active processes.
-     *
-     * @return int
-     * @deprecated Using ProcessRepository->countActive() is deprecated since 9.1.1 and will be removed in v11.x, please use ProcessRepository->findAllActive->count() instead
-     * @codeCoverageIgnore
-     */
-    public function countActive()
-    {
-        return $this->findAllActive()->count();
-    }
-
-    /**
      * @return array|null
      *
      * Function is moved from ProcessCleanUpHook
@@ -238,18 +226,6 @@ class ProcessRepository extends Repository
             )
             ->execute()
             ->fetchColumn(0);
-    }
-
-    /**
-     * Get limit clause
-     * @deprecated Using ProcessRepository::getLimitFromItemCountAndOffset() is deprecated since 9.1.1 and will be removed in v11.x, was not used, so will be removed
-     */
-    public static function getLimitFromItemCountAndOffset(int $itemCount, int $offset): string
-    {
-        $itemCount = filter_var($itemCount, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'default' => 20]]);
-        $offset = filter_var($offset, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'default' => 0]]);
-
-        return $offset . ', ' . $itemCount;
     }
 
     public function deleteProcessesWithoutItemsAssigned(): void

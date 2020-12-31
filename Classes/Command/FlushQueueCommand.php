@@ -53,14 +53,6 @@ It will remove queue entries and perform a cleanup.' . chr(10) . chr(10) .
             InputArgument::REQUIRED,
             'What to clear: all, finished, pending'
         );
-
-        $this->addOption(
-            'page',
-            'p',
-            InputOption::VALUE_OPTIONAL,
-            'Page to start - deprecated since v9.1.5, will be removed in v11.x',
-            0
-        );
     }
 
     /**
@@ -85,12 +77,6 @@ It will remove queue entries and perform a cleanup.' . chr(10) . chr(10) .
 
         /** @var QueueRepository $queueRepository */
         $queueRepository = $objectManager->get(QueueRepository::class);
-
-        $pageId = $input->getOption('page');
-        if ($pageId) {
-            $output->writeln('<error>The --page option is deprecated since v9.1.5 and will be removed in v11.x</error>');
-            trigger_error('The --page option is deprecated since v9.1.5 and will be removed in v11.x', E_USER_DEPRECATED);
-        }
 
         switch ($queueFilter) {
             case 'all':

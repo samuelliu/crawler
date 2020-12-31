@@ -22,7 +22,6 @@ namespace AOE\Crawler\Backend\RequestForm;
 use AOE\Crawler\Controller\CrawlerController;
 use AOE\Crawler\Domain\Model\Reason;
 use AOE\Crawler\Utility\MessageUtility;
-use AOE\Crawler\Utility\SignalSlotUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 use TYPO3\CMS\Info\Controller\InfoModuleController;
@@ -101,19 +100,6 @@ final class StartRequestForm extends AbstractRequestForm implements RequestFormI
         if ($noConfigurationSelected) {
             MessageUtility::addWarningMessage($this->getLanguageService()->sL('LLL:EXT:crawler/Resources/Private/Language/locallang.xlf:labels.noConfigSelected'));
         } else {
-            if ($submitCrawlUrls) {
-                $reason = new Reason();
-                $reason->setReason(Reason::REASON_GUI_SUBMIT);
-                $reason->setDetailText('The user ' . $GLOBALS['BE_USER']->user['username'] . ' added pages to the crawler queue manually');
-
-                $signalPayload = ['reason' => $reason];
-                SignalSlotUtility::emitSignal(
-                    self::class,
-                    SignalSlotUtility::SIGNAL_INVOKE_QUEUE_CHANGE,
-                    $signalPayload
-                );
-            }
-
             $code = $this->crawlerController->getPageTreeAndUrls(
                 $pageId,
                 $this->infoModuleController->MOD_SETTINGS['depth'],

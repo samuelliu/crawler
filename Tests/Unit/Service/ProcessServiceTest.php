@@ -58,19 +58,6 @@ class ProcessServiceTest extends UnitTestCase
         $this->crawlerController = $this->createPartialMock(CrawlerController::class, ['dummyMethod']);
     }
 
-    /**
-     * @test
-     */
-    public function multiProcessThrowsException(): void
-    {
-        $this->expectException(\RuntimeException::class);
-
-        $timeOut = 1;
-        $this->crawlerController->setExtensionSettings([
-            'processLimit' => 1,
-        ]);
-        $this->subject->multiProcess($timeOut);
-    }
 
     /**
      * @test
